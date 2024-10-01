@@ -6,23 +6,48 @@ $userModel = new UserModel();
 
 $user = NULL; //Add new user
 $_id = NULL;
+$errors = []; // Mảng chứa lỗi
 
 if (!empty($_GET['id'])) {
-    $_id = $_GET['id'];
-    $user = $userModel->findUserById($_id);//Update existing user
+    // Giải mã ID từ URL
+    $_id = $userModel->decodeUserId($_GET['id']);
+    $user = $userModel->findUserById($_id); 
 }
-
 
 if (!empty($_POST['submit'])) {
+    // Kiểm tra dữ liệu đầu vào
+    $name = $_POST['name'] ?? '';
+    $password = $_POST['password'] ?? '';
 
-    if (!empty($_id)) {
-        $userModel->updateUser($_POST);
-    } else {
-        $userModel->insertUser($_POST);
+    // Validate name
+    if (empty($name)) {
+        $errors['name'] = 'Chưa nhập tên';
+    } elseif (!preg_match('/^[a-zA-Z0-9]{5,15}$/', $name)) {
+        $errors['name'] = 'Tên không hợp lệ.';
     }
-    header('location: list_users.php');
-}
 
+    if (empty($password)) {
+        $errors['password'] = 'Chưa nhập mật khẩu.';
+    } elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[~!@#$%^&*()])[A-Za-z\d~!@#$%^&*()]{5,10}$/', $password)) {
+        $errors['password'] = 'Mật khẩu không hợp lệ.';
+    }
+
+    
+    if (empty($errors)) {
+        if (!empty($_POST['id'])) {
+            $_id = $userModel->decodeUserId($_POST['id']);
+            $_POST['id'] = $_id; 
+        }
+        
+        if (!empty($_id)) {
+            $userModel->updateUser($_POST);
+        } else {
+            $userModel->insertUser($_POST);
+        }
+        header('location: list_users.php');
+        exit;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html>
@@ -33,29 +58,36 @@ if (!empty($_POST['submit'])) {
 <body>
     <?php include 'views/header.php'?>
     <div class="container">
-
-            <?php if ($user || !isset($_id)) { ?>
-                <div class="alert alert-warning" role="alert">
-                    User form
+        <?php if ($user || !isset($_id)) { ?>
+            <div class="alert alert-warning" role="alert">
+                User form
+            </div>
+            <form method="POST">
+                <input type="hidden" name="id" value="<?php echo $userModel->encodeUserId($_id); ?>">
+                
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input class="form-control" name="name" placeholder="Name" value='<?php echo htmlspecialchars($user[0]['name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>'>
+                    <?php if (!empty($errors['name'])): ?>
+                        <small class="text-danger"><?php echo $errors['name']; ?></small>
+                    <?php endif; ?>
                 </div>
-                <form method="POST">
-                    <input type="hidden" name="id" value="<?php echo $_id ?>">
-                    <div class="form-group">
-                        <label for="name">Name</label>
-                        <input class="form-control" name="name" placeholder="Name" value='<?php if (!empty($user[0]['name'])) echo $user[0]['name'] ?>'>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" name="password" class="form-control" placeholder="Password">
-                    </div>
 
-                    <button type="submit" name="submit" value="submit" class="btn btn-primary">Submit</button>
-                </form>
-            <?php } else { ?>
-                <div class="alert alert-success" role="alert">
-                    User not found!
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" name="password" class="form-control" placeholder="Password">
+                    <?php if (!empty($errors['password'])): ?>
+                        <small class="text-danger"><?php echo $errors['password']; ?></small>
+                    <?php endif; ?>
                 </div>
-            <?php } ?>
+
+                <button type="submit" name="submit" value="submit" class="btn btn-primary">Submit</button>
+            </form>
+        <?php } else { ?>
+            <div class="alert alert-success" role="alert">
+                User not found!
+            </div>
+        <?php } ?>
     </div>
 </body>
 </html>

@@ -10,6 +10,8 @@ class UserModel extends BaseModel {
 
         return $user;
     }
+    
+    
 
     public function findUser($keyword) {
         $sql = 'SELECT * FROM users WHERE user_name LIKE %'.$keyword.'%'. ' OR user_email LIKE %'.$keyword.'%';
@@ -42,6 +44,7 @@ class UserModel extends BaseModel {
         return $this->delete($sql);
 
     }
+    
 
     /**
      * Update user
@@ -78,23 +81,56 @@ class UserModel extends BaseModel {
      * @param array $params
      * @return array
      */
+    // public function getUsers($params = []) {
+    //     //Keyword
+    //     if (!empty($params['keyword'])) {
+    //         $sql = 'SELECT * FROM users WHERE name LIKE "%' . $params['keyword'] .'%"';
+
+    //         //Keep this line to use Sql Injection
+    //         //Don't change
+    //         //Example keyword: abcef%";TRUNCATE banks;##
+    //         $users = self::$_connection->multi_query($sql);
+
+    //         //Get data
+    //         $users = $this->query($sql);
+    //     } else {
+    //         $sql = 'SELECT * FROM users';
+    //         $users = $this->select($sql);
+    //     }
+
+    //     return $users;
+    // }
     public function getUsers($params = []) {
-        //Keyword
+        $sql = 'SELECT * FROM users';
+        $bindings = [];
+    
+        // Thực hiện lọc và kiểm tra tham số keyword
         if (!empty($params['keyword'])) {
-            $sql = 'SELECT * FROM users WHERE name LIKE "%' . $params['keyword'] .'%"';
-
-            //Keep this line to use Sql Injection
-            //Don't change
-            //Example keyword: abcef%";TRUNCATE banks;##
-            $users = self::$_connection->multi_query($sql);
-
-            //Get data
-            $users = $this->query($sql);
-        } else {
-            $sql = 'SELECT * FROM users';
-            $users = $this->select($sql);
+            $sql .= ' WHERE name LIKE ? OR fullname LIKE ?';
+            $bindings[] = '%' . $params['keyword'] . '%';
+            $bindings[] = '%' . $params['keyword'] . '%';
         }
+    
+        // Sử dụng Prepared Statements để bảo vệ chống SQL Injection
+        $stmt = self::$_connection->prepare($sql);
+        if (!empty($bindings)) {
+            $stmt->bind_param(str_repeat('s', count($bindings)), ...$bindings);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+    // Hàm mã hóa ID
+    function encodeUserId($id) {
+        $key = 12345; 
+        $encodedId = ($id + $key) * 3;
+        return strtr(base64_encode($encodedId), '+/=', '-_,');
+    }
 
-        return $users;
+    // Hàm giải mã ID
+    function decodeUserId($encodedId) {
+        $key = 12345;
+        $decodedId = base64_decode(strtr($encodedId, '-_,', '+/='));
+        return ($decodedId / 3) - $key;
     }
 }
