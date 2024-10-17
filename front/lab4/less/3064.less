@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400&display=swap');
+
+body,
+html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+.testimonial-section {
+    position: relative;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    overflow: hidden;
+
+    .background-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('http://themelooks.us/demo/bizwalls/wordpress/wp-content/uploads/2017/05/testimonial-bg-1.jpg');
+        background-size: cover;
+        background-position: center;
+        filter: brightness(50%);
+        z-index: -1;
+        opacity: 0.9;
+    }
+
+    h2 {
+        font-size: 2.5em;
+        margin-bottom: 20px;
+    }
+
+    .underline {
+        width: 50px;
+        height: 2px;
+        background-color: #03A9F4;
+        margin-bottom: 20px;
+    }
+
+    .testimonial-content {
+        max-width: 800px;
+        margin-bottom: 30px;
+
+        .testimonial-text,
+        .author {
+            opacity: 0;
+            transform: translateX(100vw);
+            animation: slideIn 0.5s forwards;
+            text-align: justify;
+            font-size: 15px;
+            font-family: "Raleway";
+            line-height: 1.8;
+            padding: 0 85px;
+
+            &:nth-of-type(1) { // Chỉ định cho .testimonial-text
+                animation-delay: 0.5s; // Delay cho sự xuất hiện của văn bản
+            }
+        }
+    }
+
+    .profile-images {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        margin-bottom: 20px;
+        gap: 5px;
+
+        .profile-image {
+            width: 60px;
+            height: 60px;
+            border: solid 1px;
+            padding: 5px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+
+            &.active {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    }
+
+    .author {
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .dots {
+        display: flex;
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #555;
+            margin: 0 5px;
+            cursor: pointer;
+
+            &.active {
+                background-color: #03A9F4;
+                width: 20px;
+                border-radius: 5px;
+            }
+        }
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100vw);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
